@@ -8,14 +8,11 @@ public class Funcionario {
     private ECargo cargo;
     private BigDecimal salarioBase;
 
-    public Funcionario() {
-    }
-
     public Funcionario(Long matricula, String nomeCompleto, String cargo, BigDecimal salarioBase) {
         this.matricula = matricula;
         this.nomeCompleto = nomeCompleto;
         this.cargo = ECargo.valueOf(cargo);
-        this.salarioBase = salarioBase;
+        setSalarioBase(salarioBase);
     }
 
     public Long getMatricula() {
@@ -47,6 +44,9 @@ public class Funcionario {
     }
 
     public void setSalarioBase(BigDecimal salarioBase) {
+        if (salarioBase == null || salarioBase.signum() <= 0) {
+            throw new IllegalArgumentException("O salário deve ser maior que zero");
+        }
         this.salarioBase = salarioBase;
     }
 }
