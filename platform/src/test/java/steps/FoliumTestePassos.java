@@ -28,7 +28,7 @@ public class FoliumTestePassos {
     private BigDecimal totalSalariosLiquidos;
     private IllegalArgumentException erro;
 
-
+    // Insere no contexto de uma folha de pagamento vazia da competência
     @Dado("^que existe uma folha de pagamento de competência: (\\d{4}-\\d{2})$")
     public void criarFolhaDePagamento(String competencia) {
         folhaDePagamento = new FolhaDePagamento(competencia);
@@ -41,6 +41,7 @@ public class FoliumTestePassos {
         erro = null;
     }
 
+    // Realiza o cadastro
     @Quando("cadastrar os seguintes funcionários novos")
     public void cadastroFuncionariosNovos(DataTable dataTable) {
         cadastrarFuncionariosDaTabela(dataTable);
@@ -50,7 +51,7 @@ public class FoliumTestePassos {
     public void existemAsSeguintesFolhasDePagamento(DataTable dataTable) {
         cadastrarFuncionariosDaTabela(dataTable);
     }
-
+    // Lendo as colunas
     private void cadastrarFuncionariosDaTabela(DataTable dataTable) {
         dadosInformados = dataTable.asMaps(String.class, String.class);
 
@@ -69,6 +70,7 @@ public class FoliumTestePassos {
         }
     }
 
+    // Verifica e convente os dados informados
     @Entao("{int} funcionários devem estar cadastrados com os dados informados")
     public void funcionariosCadastradosComOsDadosInformados(int quantidade) {
         assertNotNull(dadosInformados);
@@ -106,6 +108,7 @@ public class FoliumTestePassos {
         }
     }
 
+    // Tenta cadastrar e se a classe rejeitar verifica a exceção retornada e que não incluiu o funcionário
     @Quando("tentar cadastrar o funcionário {string} com matrícula {string}, cargo {string} e salário base {int}")
     public void tentoCadastrarComSalarioMenorIgualAZero(
             String nomeCompleto,
@@ -147,6 +150,7 @@ public class FoliumTestePassos {
                 folhaDePagamento.calcularTotalSalariosLiquidos();
     }
 
+    // Verifica o total dos salários base
     @E("o total dos salários base deve ser {int}")
     public void totalDosSalariosBaseDeveSer(int esperado) {
         compararValor(
@@ -155,6 +159,7 @@ public class FoliumTestePassos {
         );
     }
 
+    // Verifica o total do líquido
     @E("o total líquido da folha deve ser {int}")
     public void totalLiquidoDaFolhaDeveSer(int esperado) {
         compararValor(
@@ -163,6 +168,7 @@ public class FoliumTestePassos {
         );
     }
 
+    // cadastrar funcionário na folha com as faltas
     @Quando("cadastrar o funcionário {string} com matrícula {string}, cargo {string}, salário base {int} e {int} faltas")
     public void cadastrarFuncionarioParaCalculo(
             String nome,
@@ -180,6 +186,7 @@ public class FoliumTestePassos {
         );
     }
 
+    // Calcula diretamente o desconto do imposto
     @Entao("o desconto por faixa salarial deve ser {int}")
     public void descontoPorFaixaSalarialDeveSer(int esperado) {
         compararValor(
@@ -188,6 +195,7 @@ public class FoliumTestePassos {
         );
     }
 
+    // Vê o salário e vai subtraindo para verificar o total descontado por falta
     @Entao("o desconto por faltas deve ser {int}")
     public void descontoPorFaltasDeveSer(int esperado) {
         BigDecimal salarioBase =
