@@ -17,8 +17,10 @@ public class FoliumTestePassos {
 
     @Quando("Cadastrar os seguintes funcionários novos")
     public void cadastroFuncionariosNovos(DataTable dataTable) {
-        var funcionarios = dataTable.asMap(String.class, String.class);
-
+        var funcionarios = dataTable.asMaps(String.class, String.class);
+        for (var f : funcionarios) {
+            var matricula = Long.parseLong(f.get("matricula"));
+        }
     }
 
     @Entao("{int} funcionarios devem estar cadastrados com os dados informados")
