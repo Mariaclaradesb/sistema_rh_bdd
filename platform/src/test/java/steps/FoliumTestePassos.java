@@ -16,96 +16,67 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FoliumTestePassos {
-    private FolhaDePagamento folhaDePagamento;
 
-    // Campos dos novos passos
-    private List<Map<String, String>> dadosDasFolhas;
+    private FolhaDePagamento folhaDePagamento;
+    private List<Map<String, String>> dadosInformados;
     private Pagamento pagamentoAtual;
     private BigDecimal totalSalariosBase;
     private BigDecimal totalSalariosLiquidos;
+    private IllegalArgumentException erro;
 
-    // Passos que já estavam na classe
-    @Dado("que existe uma folha de pagamento de competência: {string}")
+    @Dado("^que existe uma folha de pagamento de competência: (\\d{4}-\\d{2})$")
     public void criarFolhaDePagamento(String competencia) {
         folhaDePagamento = new FolhaDePagamento(competencia);
-    }
-
-    @Quando("Cadastrar os seguintes funcionários novos")
-    public void cadastroFuncionariosNovos(DataTable dataTable) {
-        var funcionarios = dataTable.asMaps(String.class, String.class);
-        for (var f : funcionarios) {
-            var matricula = Long.parseLong(f.get("matricula"));
-        }
-    }
-
-    @Entao("{int} funcionarios devem estar cadastrados com os dados informados")
-    public void funcionariosCadastradosComOsDadosInformados(DataTable dataTable) {
-
-    }
-
-    @Quando("tentar cadastrar o funcionário {string} com matrícula {string}, cargo {string} e salário base {int}")
-    public void tentoCadastrarComSalarioMenorIgualAZero(
-            String nomeCompleto,
-            String matricula,
-            String cargo,
-            int salarioBase
-    ) {
-
-    }
-
-    @Entao("o cadastro deve ser recusado")
-    public void cadastroRecusado() {
-
-    }
-
-    @E("a mensagem deve ser {string}")
-    public void aMensagemDeveSer(String erro) {
-
-    }
-
-    // Novos passos: folha de pagamento e desconto por falta
-    @Dado("^que existe uma folha de pagamento de competência: (\\d{4}-\\d{2})$")
-    public void criarFolhaDePagamentoSemAspas(String competencia) {
-        criarFolhaDePagamento(competencia);
         folhaDePagamento.setPagamentos(new ArrayList<>());
+
+        dadosInformados = null;
+        pagamentoAtual = null;
+        totalSalariosBase = null;
+        totalSalariosLiquidos = null;
+        erro = null;
+    }
+
+    @Quando("cadastrar os seguintes funcionários novos")
+    public void cadastroFuncionariosNovos(DataTable dataTable) {
+        cadastrarFuncionariosDaTabela(dataTable);
     }
 
     @Dado("que existem as seguintes folhas de pagamento")
-    public void existemAsSeguintesFolhas(DataTable dataTable) {
-        dadosDasFolhas = dataTable.asMaps(String.class, String.class);
-        List<Pagamento> pagamentos = new ArrayList<>();
+    public void existemAsSeguintesFolhasDePagamento(DataTable dataTable) {
+        cadastrarFuncionariosDaTabela(dataTable);
+    }
 
-        for (Map<String, String> linha : dadosDasFolhas) {
-            pagamentos.add(criarPagamento(
+    private void cadastrarFuncionariosDaTabela(DataTable dataTable) {
+        dadosInformados = dataTable.asMaps(String.class, String.class);
+
+        for (Map<String, String> linha : dadosInformados) {
+            long faltas = linha.containsKey("faltas")
+                    ? Long.parseLong(linha.get("faltas"))
+                    : 0L;
+
+            adicionarPagamento(
                     linha.get("matrícula"),
                     linha.get("nome"),
                     linha.get("cargo"),
-                    Integer.parseInt(linha.get("salario base")),
-                    Long.parseLong(linha.get("faltas"))
-            ));
+                    new BigDecimal(linha.get("salario base")),
+                    faltas
+            );
         }
-
-        folhaDePagamento.setPagamentos(pagamentos);
-    }
-
-    @Quando("calculo os totais da folha")
-    public void calculoOsTotaisDaFolha() {
-        totalSalariosBase = folhaDePagamento.calcularTotalSalariosBase();
-        totalSalariosLiquidos = folhaDePagamento.calcularTotalSalariosLiquidos();
     }
 
     @Entao("{int} funcionários devem estar cadastrados com os dados informados")
-    public void conferirFuncionariosDasFolhas(int quantidade) {
-        List<Pagamento> pagamentos = folhaDePagamento.getPagamentos();
+    public void funcionariosCadastradosComOsDadosInformados(int quantidade) {
+        assertNotNull(dadosInformados);
+        assertEquals(quantidade, dadosInformados.size());
+        assertEquals(quantidade, folhaDePagamento.getPagamentos().size());
 
-        assertEquals(quantidade, pagamentos.size());
-        assertEquals(dadosDasFolhas.size(), pagamentos.size());
-
-        for (int i = 0; i < dadosDasFolhas.size(); i++) {
-            Map<String, String> esperado = dadosDasFolhas.get(i);
-            Pagamento pagamento = pagamentos.get(i);
+        for (int i = 0; i < dadosInformados.size(); i++) {
+            Map<String, String> esperado = dadosInformados.get(i);
+            Pagamento pagamento = folhaDePagamento.getPagamentos().get(i);
             Funcionario funcionario = pagamento.getFuncionario();
 
             assertEquals(
@@ -121,24 +92,72 @@ public class FoliumTestePassos {
                     funcionario.getCargo()
             );
             compararValor(
-                    Integer.parseInt(esperado.get("salario base")),
+                    new BigDecimal(esperado.get("salario base")),
                     funcionario.getSalarioBase()
             );
-            assertEquals(
-                    Long.valueOf(esperado.get("faltas")),
-                    pagamento.getFaltas()
-            );
+
+            if (esperado.containsKey("faltas")) {
+                assertEquals(
+                        Long.valueOf(esperado.get("faltas")),
+                        pagamento.getFaltas()
+                );
+            }
         }
     }
 
+    @Quando("tentar cadastrar o funcionário {string} com matrícula {string}, cargo {string} e salário base {int}")
+    public void tentoCadastrarComSalarioMenorIgualAZero(
+            String nomeCompleto,
+            String matricula,
+            String cargo,
+            int salarioBase
+    ) {
+        try {
+            adicionarPagamento(
+                    matricula,
+                    nomeCompleto,
+                    cargo,
+                    BigDecimal.valueOf(salarioBase),
+                    0L
+            );
+        } catch (IllegalArgumentException excecao) {
+            erro = excecao;
+        }
+    }
+
+    @Entao("o cadastro deve ser recusado")
+    public void cadastroRecusado() {
+        assertNotNull(erro);
+        assertTrue(folhaDePagamento.getPagamentos().isEmpty());
+    }
+
+    @E("a mensagem deve ser {string}")
+    public void aMensagemDeveSer(String mensagemEsperada) {
+        assertNotNull(erro);
+        assertEquals(mensagemEsperada, erro.getMessage());
+    }
+
+    @Quando("calculo os totais da folha")
+    public void calculoOsTotaisDaFolha() {
+        totalSalariosBase = folhaDePagamento.calcularTotalSalariosBase();
+        totalSalariosLiquidos =
+                folhaDePagamento.calcularTotalSalariosLiquidos();
+    }
+
     @E("o total dos salários base deve ser {int}")
-    public void totalSalariosBaseDeveSer(int esperado) {
-        compararValor(esperado, totalSalariosBase);
+    public void totalDosSalariosBaseDeveSer(int esperado) {
+        compararValor(
+                BigDecimal.valueOf(esperado),
+                totalSalariosBase
+        );
     }
 
     @E("o total líquido da folha deve ser {int}")
     public void totalLiquidoDaFolhaDeveSer(int esperado) {
-        compararValor(esperado, totalSalariosLiquidos);
+        compararValor(
+                BigDecimal.valueOf(esperado),
+                totalSalariosLiquidos
+        );
     }
 
     @Quando("cadastrar o funcionário {string} com matrícula {string}, cargo {string}, salário base {int} e {int} faltas")
@@ -149,25 +168,19 @@ public class FoliumTestePassos {
             int salarioBase,
             int faltas
     ) {
-        pagamentoAtual = criarPagamento(
+        pagamentoAtual = adicionarPagamento(
                 matricula,
                 nome,
                 cargo,
-                salarioBase,
+                BigDecimal.valueOf(salarioBase),
                 faltas
         );
-
-        if (folhaDePagamento.getPagamentos() == null) {
-            folhaDePagamento.setPagamentos(new ArrayList<>());
-        }
-
-        folhaDePagamento.getPagamentos().add(pagamentoAtual);
     }
 
     @Entao("o desconto por faixa salarial deve ser {int}")
     public void descontoPorFaixaSalarialDeveSer(int esperado) {
         compararValor(
-                esperado,
+                BigDecimal.valueOf(esperado),
                 pagamentoAtual.calcularImpostoDeRenda()
         );
     }
@@ -177,46 +190,48 @@ public class FoliumTestePassos {
         BigDecimal salarioBase =
                 pagamentoAtual.getFuncionario().getSalarioBase();
 
-        BigDecimal desconto = salarioBase
+        BigDecimal descontoPorFaltas = salarioBase
                 .subtract(pagamentoAtual.calcularImpostoDeRenda())
                 .subtract(pagamentoAtual.calcularSalarioLiquido());
 
-        compararValor(esperado, desconto);
+        compararValor(
+                BigDecimal.valueOf(esperado),
+                descontoPorFaltas
+        );
     }
 
     @E("o salário líquido deve ser {int}")
     public void salarioLiquidoDeveSer(int esperado) {
         compararValor(
-                esperado,
+                BigDecimal.valueOf(esperado),
                 pagamentoAtual.calcularSalarioLiquido()
         );
     }
 
-    private Pagamento criarPagamento(
+    private Pagamento adicionarPagamento(
             String matricula,
             String nome,
             String cargo,
-            int salarioBase,
+            BigDecimal salarioBase,
             long faltas
     ) {
         Funcionario funcionario = new Funcionario(
                 Long.parseLong(matricula),
                 nome,
                 cargo,
-                BigDecimal.valueOf(salarioBase)
+                salarioBase
         );
 
         Pagamento pagamento = new Pagamento();
         pagamento.setFuncionario(funcionario);
         pagamento.setFaltas(faltas);
 
+        folhaDePagamento.getPagamentos().add(pagamento);
         return pagamento;
     }
 
-    private void compararValor(int esperado, BigDecimal atual) {
-        assertEquals(
-                0,
-                BigDecimal.valueOf(esperado).compareTo(atual)
-        );
+    private void compararValor(BigDecimal esperado, BigDecimal atual) {
+        assertNotNull(atual);
+        assertEquals(0, esperado.compareTo(atual));
     }
 }
