@@ -26,6 +26,7 @@ public class FoliumTestePassos {
     private BigDecimal totalSalariosLiquidos;
     private IllegalArgumentException erro;
 
+
     @Dado("^que existe uma folha de pagamento de competência: (\\d{4}-\\d{2})$")
     public void criarFolhaDePagamento(String competencia) {
         folhaDePagamento = new FolhaDePagamento(competencia);
@@ -134,6 +135,8 @@ public class FoliumTestePassos {
         assertNotNull(erro);
         assertEquals(mensagemEsperada, erro.getMessage());
     }
+
+    // FOLHAS DE PAGAMENTO
 
     @Quando("calculo os totais da folha")
     public void calculoOsTotaisDaFolha() {

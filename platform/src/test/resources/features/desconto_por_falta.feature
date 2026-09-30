@@ -6,7 +6,7 @@ Funcionalidade: Desconto por falta
     Dado que existe uma folha de pagamento de competência: 2026-09
 
   Esquema do Cenário: Descontar cem reais por falta
-    Quando cadastrar o funcionário "Ana Souza" com matrícula "010", cargo "ANALISTA", salário base 2000 e <faltas> faltas
+    Quando cadastrar o funcionário "Luiz Matos" com matrícula "010", cargo "ANALISTA", salário base 2000 e <faltas> faltas
     Então o desconto por faltas deve ser <desconto>
     E o salário líquido deve ser <líquido>
 
