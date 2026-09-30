@@ -1,17 +1,23 @@
 package steps;
 
-import com.example.platform.modelos.Conta;
+import com.example.platform.modelos.FolhaDePagamento;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.pt.Dado;
 import io.cucumber.java.pt.E;
 import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class FoliumTestePassos {
-    //@Dado("que não existem funcionários cadastrados ainda")
+    private FolhaDePagamento folhaDePagamento;
+
+    @Dado("que existe uma folha de pagamento de competência: {string}")
+    public void criarFolhaDePagamento(String competencia) {
+        folhaDePagamento = new FolhaDePagamento(competencia);
+    }
+
     @Quando("Cadastrar os seguintes funcionários novos")
     public void cadastroFuncionariosNovos(DataTable dataTable) {
+        var funcionarios = dataTable.asMap(String.class, String.class);
 
     }
 

@@ -15,6 +15,10 @@ public class FolhaDePagamento {
         this.pagamentos = pagamentos;
     }
 
+    public FolhaDePagamento(String competencia) {
+        this.competencia = competencia;
+    }
+
     public BigDecimal calcularTotalSalariosLiquidos() {
         BigDecimal soma = new BigDecimal(0);
 
