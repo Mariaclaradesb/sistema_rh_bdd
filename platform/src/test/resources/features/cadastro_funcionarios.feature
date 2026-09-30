@@ -7,7 +7,7 @@ Funcionalidade: Cadastro de Funcionários dentro do Folium
     Cenario: Cadastrar funcionários com dados válidos
       Quando cadastrar os seguintes funcionários novos
         |matrícula  |nome                  |cargo          |salario base   |
-        |001        |Mateus Lopes          |DIRET0R        |5000           |
+        |001        |Mateus Lopes          |DIRETOR        |5000           |
         |002        |Maria Clara Barroso   |ANALISTA       |2800           |
         |003        |Bruna Soares          |GERENTE        |3500           |
       Entao 3 funcionários devem estar cadastrados com os dados informados
