@@ -20,24 +20,24 @@ public class FolhaDePagamento {
     }
 
     public BigDecimal calcularTotalSalariosLiquidos() {
-        BigDecimal soma = new BigDecimal(0);
+        BigDecimal soma = BigDecimal.ZERO;
 
-        pagamentos.forEach(pagamento -> {
-           var salario = pagamento.calcularSalarioLiquido();
-           soma.add(salario);
-        });
+        for (var pagamento : pagamentos) {
+            soma = soma.add(pagamento.calcularSalarioLiquido());
+        }
 
         return soma;
     }
 
     public BigDecimal calcularTotalSalariosBase() {
-        BigDecimal soma = new BigDecimal(0);
+        BigDecimal soma = BigDecimal.ZERO;
 
-        pagamentos.forEach(pagamento -> {
-            var salarioBase = pagamento.getFuncionario()
-                    .getSalarioBase();
-            soma.add(salarioBase);
-        });
+        for (var pagamento : pagamentos) {
+            soma = soma.add(pagamento
+                    .getFuncionario()
+                    .getSalarioBase()
+            );
+        }
 
         return soma;
     }
